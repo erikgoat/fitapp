@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Workouts</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#000000">
 <style>
 :root{--bg:#000;--card:#1a1a1a;--line:#333;--mut:#888;--fg:#fff;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
@@ -22,7 +26,7 @@ button.mut{color:var(--mut);text-align:center}
 .row>.sm{flex:none}
 input{font:inherit;color:var(--fg);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;width:100%;min-width:0}
 input:focus{outline:2px solid var(--mut);outline-offset:0}
-.set{display:grid;grid-template-columns:36px 1fr 62px 62px 44px;gap:6px;align-items:center;margin-bottom:5px}
+.set{display:grid;grid-template-columns:36px 1fr 62px 62px 40px 40px;gap:6px;align-items:center;margin-bottom:5px}
 .set .n{color:var(--mut);text-align:center}
 .set .pv{background:none;border:0;padding:6px 0;color:var(--mut);font-size:14px;text-align:center;white-space:nowrap;width:100%}
 .set input{text-align:center;padding:7px 2px;font-size:16px;border-radius:8px}
@@ -30,7 +34,9 @@ input:focus{outline:2px solid var(--mut);outline-offset:0}
 .set.done input{color:var(--mut);background:#000}
 .set.done button[data-a="tick"]{background:#22c55e;color:#000;border-color:#22c55e}
 .set.pr{border:2px solid #d4af37;border-radius:10px;padding:3px}
-.lbl{display:grid;grid-template-columns:36px 1fr 62px 62px 44px;gap:6px;color:var(--mut);font-size:13px;text-align:center;margin-bottom:4px}
+.set button[data-a="del"]{color:var(--mut)}
+.set button[data-a="del"]:disabled{opacity:.25}
+.lbl{display:grid;grid-template-columns:36px 1fr 62px 62px 40px 40px;gap:6px;color:var(--mut);font-size:13px;text-align:center;margin-bottom:4px}
 .mutt{color:var(--mut)}
 input::placeholder{color:#666;opacity:1}
 .gap{height:12px}
@@ -157,11 +163,11 @@ function isPR(n,s){
 function work(){
   var d=S.draft,h='<button class="sm mut" data-a="home" style="padding:6px 14px;margin-bottom:6px;font-size:20px">←</button><h1>'+esc(d.name)+'</h1><div id="tm" style="font-size:22px;margin:-8px 0 4px;color:#888">'+fmt(Date.now()-(d.t0||Date.now()))+'</div>';
   d.ex.forEach(function(x,i){
-    h+='<h2>'+esc(x.name)+'</h2><div class="lbl"><span></span><span>Previous</span><span>kg</span><span>reps</span><span></span></div>';
+    h+='<h2>'+esc(x.name)+'</h2><div class="lbl"><span></span><span>Previous</span><span>kg</span><span>reps</span><span></span><span></span></div>';
     x.sets.forEach(function(s,j){
-      var pr=isPR(x.name,s);h+='<div class="set'+(s.d?' done':'')+(pr?' pr':'')+'"><span class="n">'+(x.uni?(Math.floor(j/2)+1)+(s.s||''):(j+1))+'</span><button class="pv" data-a="usep" data-i="'+i+'" data-j="'+j+'">'+prevTxt(x.name,j)+'</button><input inputmode="decimal" data-f="w" data-i="'+i+'" data-j="'+j+'" placeholder="'+esc(ph(x.name,j,'w'))+'" value="'+esc(s.w)+'"><input inputmode="numeric" data-f="r" data-i="'+i+'" data-j="'+j+'" placeholder="'+esc(ph(x.name,j,'r'))+'" value="'+esc(s.r)+'"><button data-a="tick" data-i="'+i+'" data-j="'+j+'">'+(String(s.w)===''?'✕':(pr?'🏆':'✓'))+'</button></div>';
+      var pr=isPR(x.name,s);h+='<div class="set'+(s.d?' done':'')+(pr?' pr':'')+'"><span class="n">'+(x.uni?(Math.floor(j/2)+1)+(s.s||''):(j+1))+'</span><button class="pv" data-a="usep" data-i="'+i+'" data-j="'+j+'">'+prevTxt(x.name,j)+'</button><input inputmode="decimal" data-f="w" data-i="'+i+'" data-j="'+j+'" placeholder="'+esc(ph(x.name,j,'w'))+'" value="'+esc(s.w)+'"><input inputmode="numeric" data-f="r" data-i="'+i+'" data-j="'+j+'" placeholder="'+esc(ph(x.name,j,'r'))+'" value="'+esc(s.r)+'"><button data-a="tick" data-i="'+i+'" data-j="'+j+'">'+(pr?'🏆':'✓')+'</button><button data-a="del" data-i="'+i+'" data-j="'+j+'"'+(s.d||(x.uni&&(x.sets[j^1]||{}).d)?' disabled':'')+'>✕</button></div>';
     });
-    h+='<button class="mut" data-a="addset" data-i="'+i+'">+ set</button>';
+    h+='<div class="set"><span></span><button class="mut" data-a="addset" data-i="'+i+'" style="grid-column:2/5">+ set</button></div>';
   });
   h+='<div class="gap"></div><div class="gap"></div><button class="pri" data-a="finish">Finish workout</button><div class="gap"></div><button class="mut" data-a="cancel">Cancel workout</button>';
   app.innerHTML=h;
@@ -173,7 +179,7 @@ app.addEventListener('input',function(e){
   if(f==='rname')ed.r.name=t.value;
   else if(f==='ename')ed.r.ex[i].name=t.value;
   else if(f==='esets')ed.r.ex[i].sets=t.value;
-  else if(f==='w'||f==='r'){S.draft.ex[i].sets[j][f]=t.value;S.draft.la=Date.now();save();if(f==='w'){var bt=t.parentNode.querySelector('button[data-a="tick"]'),sx=S.draft.ex[i].sets[j];if(bt)bt.textContent=t.value===''?'✕':(sx.d&&isPR(S.draft.ex[i].name,sx)?'🏆':'✓')}}
+  else if(f==='w'||f==='r'){S.draft.ex[i].sets[j][f]=t.value;S.draft.la=Date.now();save()}
 });
 
 app.addEventListener('click',function(e){
@@ -204,12 +210,13 @@ app.addEventListener('click',function(e){
   }
   else if(a==='resume'){view='work'}
   else if(a==='usep'){var xu=S.draft.ex[i],su=xu.sets[j];touch();su.w=ph(xu.name,j,'w')||'';su.r=ph(xu.name,j,'r')||'';save()}
+  else if(a==='del'){var xd=S.draft.ex[i];if(xd.sets[j].d||(xd.uni&&(xd.sets[j^1]||{}).d))return;touch();xd.sets.splice(xd.uni?j-(j%2):j,xd.uni?2:1);save()}
   else if(a==='uni'){ed.r.ex[i].uni=!ed.r.ex[i].uni}
   else if(a==='hist'){openH=null;view='hist'}
   else if(a==='prs'){view='prs'}
   else if(a==='toggleH'){openH=(openH===i?null:i)}
   else if(a==='delH'){if(!ask(b,'delH'+i,'Tap again: delete entry'))return;S.hist.splice(i,1);openH=null;save()}
-  else if(a==='tick'){touch();var xe=S.draft.ex[i],s=xe.sets[j];if(String(s.w)===''){xe.sets.splice(xe.uni?j-(j%2):j,xe.uni?2:1);save();render();return}s.d=!s.d;if(s.d){if(s.w==='')s.w=ph(xe.name,j,'w')||'';if(s.r==='')s.r=ph(xe.name,j,'r')||''}save()}
+  else if(a==='tick'){touch();var xe=S.draft.ex[i],s=xe.sets[j];s.d=!s.d;if(s.d){if(s.w==='')s.w=ph(xe.name,j,'w')||'';if(s.r==='')s.r=ph(xe.name,j,'r')||''}save()}
   else if(a==='addset'){touch();var xx=S.draft.ex[i],ss=xx.sets;if(xx.uni){ss.push({w:'',r:'',d:false,s:'L'});ss.push({w:'',r:'',d:false,s:'R'})}else ss.push({w:'',r:'',d:false,s:''});save()}
   else if(a==='finish'){var rec={date:Date.now(),name:S.draft.name,ex:[],dur:Date.now()-(S.draft.t0||Date.now())};
     S.draft.ex.forEach(function(x){
@@ -231,6 +238,7 @@ if(S.draft&&!S.draft.t0){S.draft.t0=S.draft.la=Date.now()}
 checkIdle();
 if(S.draft)view='work';
 render();
+try{if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js")}catch(e){}
 </script>
 </body>
 </html>
