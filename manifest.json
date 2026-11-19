@@ -1,6 +1,6 @@
 {
-  "name": "Tréningy",
-  "short_name": "Tréningy",
+  "name": "Workouts",
+  "short_name": "Workouts",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
