@@ -108,7 +108,7 @@ function cal(){
   return h+'</div><p class="mutt" style="text-align:center;font-size:13px;margin:8px 0 0">'+cnt+' workout days</p>';
 }
 var dv=-1;
-function addH(rec){addH(rec);S.hist.sort(function(a,b){return b.date-a.date})}
+function addH(rec){S.hist.unshift(rec);S.hist.sort(function(a,b){return b.date-a.date})}
 function dayV(){
   var r=S.hist[dv];
   if(!r){view='home';home();return}
