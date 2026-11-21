@@ -40,7 +40,8 @@ input:focus{outline:2px solid var(--mut);outline-offset:0}
 .mutt{color:var(--mut)}
 input::placeholder{color:#666;opacity:1}
 .gap{height:12px}
-#app>button:not(.sm){max-width:320px;display:block;margin-left:auto;margin-right:auto;text-align:center}
+button:disabled{opacity:.25}
+#app>button:not(.sm){max-width:230px;padding:10px 12px;font-size:16px;display:block;margin-left:auto;margin-right:auto;text-align:center}
 h1,#tm{text-align:center}
 .hi{margin-bottom:8px}
 </style>
@@ -67,7 +68,7 @@ function finishW(endT,auto){
     var done=x.sets.filter(function(s){return s.d}).map(function(s){return{w:s.w,r:s.r,s:s.s||''}});
     if(done.length){S.last[x.name]=x.sets.map(function(s){return s.d?{w:s.w,r:s.r,s:s.s||''}:{w:'',r:'',s:s.s||''}});rec.ex.push({name:x.name,sets:done})}
   });
-  if(rec.ex.length)S.hist.unshift(rec);
+  if(rec.ex.length)addH(rec);
   S.draft=null;save();
 }
 function checkIdle(){
@@ -82,7 +83,7 @@ setInterval(function(){
 },1000);
 document.addEventListener('visibilitychange',function(){if(!document.hidden&&checkIdle())render()});
 function render(){
-  if(view==='home')home();else if(view==='edit')edit();else if(view==='hist')hist();else if(view==='prs')prs();else if(view==='pick')pick();else if(view==='routines')routines();else work();
+  if(view==='home')home();else if(view==='edit')edit();else if(view==='hist')hist();else if(view==='prs')prs();else if(view==='pick')pick();else if(view==='routines')routines();else if(view==='day')dayV();else work();
   if(view!==lv){window.scrollTo(0,0);lv=view}
 }
 function cal(){
@@ -95,14 +96,29 @@ function cal(){
   names.forEach(function(n){h+='<div class="mutt" style="text-align:center;font-size:11px">'+n+'</div>'});
   for(var k=0;k<weeks*7;k++){
     var d=new Date(y,m,1-lead+k),out=d.getMonth()!==m;
-    var on=done[d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate()],fut=d>t,td=d.getTime()===t.getTime();
+    var key=d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate(),on=done[key],fut=d>t,td=d.getTime()===t.getTime();
     if(on&&!out)cnt++;
-    h+='<div style="height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:'+(on?'700':'400')+';color:'+(on?'#000':(out?'#444':'#fff'))+';border:'+(td?'2px solid #fff':(out?'1px solid #161616':'1px solid #444'))+';background:'+(on?'#22c55e':(out?'#000':'#2a2a2a'))+';opacity:'+(out?'.4':(fut?'.6':'1'))+'">'+d.getDate()+'</div>';
+    h+='<'+(on?'button data-a="day" data-k="'+key+'"':'div')+' style="padding:0;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:'+(on?'700':'400')+';color:'+(on?'#000':(out?'#444':'#fff'))+';border:'+(td?'2px solid #fff':(out?'1px solid #161616':'1px solid #444'))+';background:'+(on?'#22c55e':(out?'#000':'#2a2a2a'))+';opacity:'+(out?'.4':(fut?'.6':'1'))+'">'+d.getDate()+'</'+(on?'button':'div')+'>';
   }
   return h+'</div><p class="mutt" style="text-align:center;font-size:13px;margin:8px 0 0">'+cnt+' workout days</p>';
 }
+var dv=-1;
+function addH(rec){addH(rec);S.hist.sort(function(a,b){return b.date-a.date})}
+function dayV(){
+  var r=S.hist[dv];
+  if(!r){view='home';home();return}
+  var d=new Date(r.date),n=S.hist.length;
+  var h=BK+'<h1 style="margin-bottom:6px">'+d.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'</h1>';
+  h+='<div class="mutt" style="text-align:center;margin-bottom:10px">'+esc(r.name)+(r.dur?', '+Math.round(r.dur/60000)+' min':'')+'</div>';
+  r.ex.forEach(function(x){
+    h+='<div style="margin-top:10px;font-weight:600">'+esc(x.name)+'</div>';
+    x.sets.forEach(function(t,j){h+='<div class="mutt">'+(t.s?(Math.floor(j/2)+1)+t.s:(j+1))+'.  '+esc(t.w||'\u2013')+' kg \u00d7 '+esc(t.r||'\u2013')+'</div>'});
+  });
+  h+='<div class="row" style="margin-top:22px"><button data-a="dprev" style="text-align:center;font-size:22px;padding:6px"'+(dv>=n-1?' disabled':'')+'>\u2039</button><span class="mutt" style="flex:none;min-width:60px;text-align:center">'+(n-dv)+' / '+n+'</span><button data-a="dnext" style="text-align:center;font-size:22px;padding:6px"'+(dv<=0?' disabled':'')+'>\u203a</button></div>';
+  app.innerHTML=h;
+}
 function home(){
-  var h='<h1 style="visibility:hidden">.</h1>';
+  var h='<div style="height:22vh"></div>';
   if(S.draft)h+='<button class="pri" data-a="resume">Workout in progress: '+esc(S.draft.name)+' <span id="tm">'+fmt(Date.now()-(S.draft.t0||Date.now()))+'</span></button><div class="gap"></div>';
   else h+='<button class="pri" data-a="pick" style="text-align:center">Start workout</button><div class="gap"></div>';
   h+='<button class="mut" data-a="routines">Routines</button><div class="gap"></div><button class="mut" data-a="hist">History</button><div class="gap"></div><button class="mut" data-a="prs">PR\'s</button>';
@@ -245,6 +261,9 @@ app.addEventListener('click',function(e){
   else if(a==='prs'){view='prs'}
   else if(a==='pick'){view='pick'}
   else if(a==='routines'){view='routines'}
+  else if(a==='day'){var kk=b.getAttribute('data-k');dv=-1;S.hist.forEach(function(r,n){var d=new Date(r.date);if(dv<0&&d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate()===kk)dv=n});if(dv<0)return;view='day'}
+  else if(a==='dprev'){if(dv<S.hist.length-1)dv++}
+  else if(a==='dnext'){if(dv>0)dv--}
   else if(a==='toggleH'){openH=(openH===i?null:i)}
   else if(a==='delH'){if(!ask(b,'delH'+i,'Tap again: delete entry'))return;S.hist.splice(i,1);openH=null;save()}
   else if(a==='tick'){touch();var xe=S.draft.ex[i],s=xe.sets[j];s.d=!s.d;if(s.d){if(s.w==='')s.w=ph(xe.name,j,'w')||'';if(s.r==='')s.r=ph(xe.name,j,'r')||''}save()}
@@ -255,7 +274,7 @@ app.addEventListener('click',function(e){
       if(done.length){S.last[x.name]=x.sets.map(function(s){return s.d?{w:s.w,r:s.r,s:s.s||''}:{w:'',r:'',s:s.s||''}});rec.ex.push({name:x.name,sets:done})}
     });
     if(!rec.ex.length&&!ask(b,'finish','No set confirmed with ✓. Tap again to finish without saving'))return;
-    if(rec.ex.length)S.hist.unshift(rec);S.draft=null;save();view='home';
+    if(rec.ex.length)addH(rec);S.draft=null;save();view='home';
   }
   else if(a==='cancel'){if(!ask(b,'cancel','Tap again: discard workout'))return;S.draft=null;save();view='home'}
   else return;
@@ -266,6 +285,7 @@ S.hist.forEach(function(h){h.ex.forEach(function(x){m(x.sets)})});
 Object.keys(S.last).forEach(function(k){m(S.last[k])});
 if(S.draft)S.draft.ex.forEach(function(x){m(x.sets)});})();
 if(S.draft&&!S.draft.t0){S.draft.t0=S.draft.la=Date.now()}
+S.hist.sort(function(a,b){return b.date-a.date});
 checkIdle();
 if(S.draft)view='work';
 render();
