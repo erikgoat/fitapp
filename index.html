@@ -39,6 +39,9 @@ input:focus{outline:2px solid var(--mut);outline-offset:0}
 .lbl{display:grid;grid-template-columns:36px 1fr 62px 62px 40px 40px;gap:6px;color:var(--mut);font-size:13px;text-align:center;margin-bottom:4px}
 .mutt{color:var(--mut)}
 input::placeholder{color:#666;opacity:1}
+html.nos,body.nos{overflow:hidden;height:100%;overscroll-behavior:none}
+body.nos #app{height:100%;display:flex;flex-direction:column;padding-bottom:16px}
+body.nos #app>*{flex:none}
 .gap{height:12px}
 button:disabled{opacity:.25}
 #app>button:not(.sm){max-width:230px;padding:10px 12px;font-size:16px;display:block;margin-left:auto;margin-right:auto;text-align:center}
@@ -84,6 +87,7 @@ setInterval(function(){
 },1000);
 document.addEventListener('visibilitychange',function(){if(!document.hidden&&checkIdle())render()});
 function render(){
+  document.documentElement.classList.toggle('nos',view==='home');document.body.classList.toggle('nos',view==='home');
   if(view==='home')home();else if(view==='edit')edit();else if(view==='hist')hist();else if(view==='prs')prs();else if(view==='pick')pick();else if(view==='routines')routines();else if(view==='day')dayV();else work();
   if(view!==lv){window.scrollTo(0,0);lv=view}
 }
@@ -93,7 +97,7 @@ function cal(){
   var now=new Date(),t=new Date(now.getFullYear(),now.getMonth(),now.getDate()),y=t.getFullYear(),m=t.getMonth();
   var lead=(new Date(y,m,1).getDay()+6)%7,days=new Date(y,m+1,0).getDate(),weeks=Math.ceil((lead+days)/7),cnt=0;
   var names=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  var h='<h2 style="text-align:center;margin:36px 0 8px;font-size:16px">'+t.toLocaleDateString('en-GB',{month:'long'})+'</h2><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;max-width:270px;margin:0 auto">';
+  var h='<h2 style="text-align:center;margin:36px 0 8px;font-size:16px">'+t.toLocaleDateString('en-GB',{month:'long'})+'</h2><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;width:100%;max-width:270px;margin:0 auto">';
   names.forEach(function(n){h+='<div class="mutt" style="text-align:center;font-size:11px">'+n+'</div>'});
   for(var k=0;k<weeks*7;k++){
     var d=new Date(y,m,1-lead+k),out=d.getMonth()!==m;
@@ -119,7 +123,7 @@ function dayV(){
   app.innerHTML=h;
 }
 function home(){
-  var h='<div style="height:22vh"></div>';
+  var h='<div style="flex:1 1 0;max-height:22vh;min-height:0"></div>';
   if(S.draft)h+='<button class="pri" data-a="resume">Workout in progress: '+esc(S.draft.name)+' <span id="tm">'+fmt(Date.now()-(S.draft.t0||Date.now()))+'</span></button><div class="gap"></div>';
   else h+='<button class="pri" data-a="pick" style="text-align:center">Start workout</button><div class="gap"></div>';
   h+='<button class="mut" data-a="routines">Routines</button><div class="gap"></div><button class="mut" data-a="hist">History</button><div class="gap"></div><button class="mut" data-a="prs">PR\'s</button>';
